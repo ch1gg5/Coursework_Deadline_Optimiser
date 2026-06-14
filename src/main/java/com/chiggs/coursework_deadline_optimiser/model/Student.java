@@ -19,6 +19,7 @@ public class Student {
     private Long id;
 
     private String name;
+    private String email;
 
     @JsonIgnore //to avoid infinite json recursion
     @OneToMany(mappedBy = "student")

@@ -1,5 +1,6 @@
 package com.chiggs.coursework_deadline_optimiser.controller;
 
+import com.chiggs.coursework_deadline_optimiser.dto.StudentRequest;
 import com.chiggs.coursework_deadline_optimiser.model.Student;
 import com.chiggs.coursework_deadline_optimiser.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,13 +26,13 @@ public class StudentController {
     }
 
     @PostMapping("/students")
-    public void addStudent(@RequestBody Student student){
+    public void addStudent(@RequestBody StudentRequest student){
         service.addStudent(student);
     }
 
-    @PutMapping("/students")
-    public void updateStudent(@RequestBody Student student){
-        service.updateStudent(student);
+    @PutMapping("/students/{id}")
+    public void updateStudent(@PathVariable Long id, @RequestBody StudentRequest request){
+        service.updateStudent(id, request );
     }
 
     @DeleteMapping("/students/{id}")
