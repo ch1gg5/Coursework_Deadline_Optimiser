@@ -1,12 +1,12 @@
-package com.chiggs.coursework_deadline_optimiser;
+package com.chiggs.coursework_deadline_optimiser.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Entity
@@ -16,7 +16,11 @@ public class Student {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long studentId;
 
     private String name;
+
+    @JsonIgnore //to avoid infinite json recursion
+    @OneToMany(mappedBy = "student")
+    private List<Coursework> courseworks;
 }

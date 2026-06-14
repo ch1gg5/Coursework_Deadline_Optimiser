@@ -1,4 +1,4 @@
-package com.chiggs.coursework_deadline_optimiser;
+package com.chiggs.coursework_deadline_optimiser.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,7 +15,7 @@ public class Coursework {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long courseworkId;
 
     private String title;
     private Date deadline;
@@ -25,5 +25,10 @@ public class Coursework {
     private int progress;
 
     @ManyToOne
-    private Module module;
+    @JoinColumn(name = "student_id")
+    private Student student;
+
+    @ManyToOne
+    @JoinColumn(name = "module_id")
+    private AcademicModule module;
 }
