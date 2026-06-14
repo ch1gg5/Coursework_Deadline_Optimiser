@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -18,7 +19,7 @@ public class Coursework {
     private Long id;
 
     private String title;
-    private Date deadline;
+    private LocalDate deadline;
     private int estimatedHours;
     private int weighting;
     private int difficulty;
