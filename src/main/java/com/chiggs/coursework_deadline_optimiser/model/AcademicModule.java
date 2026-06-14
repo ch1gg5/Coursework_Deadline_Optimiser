@@ -15,7 +15,7 @@ import java.util.List;
 public class AcademicModule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long moduleId;
+    private Long id;
 
     private String name;
     private String moduleCode;

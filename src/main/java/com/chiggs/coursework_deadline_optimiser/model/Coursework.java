@@ -15,7 +15,7 @@ public class Coursework {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long courseworkId;
+    private Long id;
 
     private String title;
     private Date deadline;
