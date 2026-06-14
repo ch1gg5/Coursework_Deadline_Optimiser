@@ -42,6 +42,7 @@ public class CourseworkService {
         coursework.setTitle(request.getTitle());
         coursework.setDeadline(request.getDeadline());
         coursework.setWeighting(request.getWeighting());
+        coursework.setDifficulty(request.getDifficulty());
         coursework.setEstimatedHours(
                 request.getEstimatedHours());
 

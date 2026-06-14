@@ -4,12 +4,10 @@ import com.chiggs.coursework_deadline_optimiser.model.Coursework;
 import com.chiggs.coursework_deadline_optimiser.model.StudySession;
 import com.chiggs.coursework_deadline_optimiser.repo.CourseworkRepo;
 import com.chiggs.coursework_deadline_optimiser.service.optimisation.PriorityCalculator;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -21,54 +19,95 @@ public class ScheduleService {
     @Autowired
     private PriorityCalculator pc;
 
-    public List<StudySession> generateSchedule(){
+    public List<StudySession> generateSchedule() {
 
         List<Coursework> courseworks = courseworkRepo.findAll();
 
-        //sort by priority, highest first
-        courseworks.sort(Comparator.comparing(pc::calculatePriority).reversed());
+        LocalDate today = LocalDate.now();
+        int maxHoursPerDay = 4;
+        int planningDays = 60;
 
         List<StudySession> schedule = new ArrayList<>();
-        LocalDate today = LocalDate.now();
 
-        int maxHoursPerDay = 4;
-
-        //track daily load
-        Map<LocalDate, Integer> dailyLoad = new HashMap<>();
+        // track remaining work per coursework
+        Map<Long, Double> remainingWork = new HashMap<>();
         for (Coursework cw : courseworks) {
+            remainingWork.put(cw.getId(), (double) cw.getEstimatedHours());
+        }
 
-            long daysLeft = ChronoUnit.DAYS.between(today, cw.getDeadline());
-            if(daysLeft <=0) continue;
+        for (int d = 0; d < planningDays; d++) {
 
-            double totalHours = cw.getEstimatedHours();
-            double hoursPerDay = Math.ceil(totalHours / daysLeft);
+            LocalDate date = today.plusDays(d);
+            int dailyCapacity = maxHoursPerDay;
 
-            for(int i = 0; i < daysLeft; i++){
+            // STEP 1: get active coursework
+            List<Coursework> active = new ArrayList<>();
 
-                LocalDate date = today.plusDays(i);
-                int usedHours = dailyLoad.getOrDefault(date, 0);
+            for (Coursework cw : courseworks) {
 
-                if (usedHours >= maxHoursPerDay) {
-                    continue;
-                }
+                double remaining = remainingWork.get(cw.getId());
 
-                int available = maxHoursPerDay - usedHours;
-                int allocated = (int) Math.min(hoursPerDay, available);
+                if (remaining <= 0) continue;
 
-                if (allocated <= 0){
-                    continue;
-                }
+                if (date.isAfter(cw.getDeadline())) continue;
+
+                active.add(cw);
+            }
+
+            if (active.isEmpty()) continue;
+
+            // STEP 2: calculate weights
+            Map<Long, Double> weights = new HashMap<>();
+            double totalWeight = 0;
+
+            for (Coursework cw : active) {
+
+                double remaining = remainingWork.get(cw.getId());
+                double priority = pc.calculatePriority(cw);
+
+                double weight = priority * remaining;
+
+                weights.put(cw.getId(), weight);
+                totalWeight += weight;
+            }
+
+            // STEP 3: allocate hours
+            for (Coursework cw : active) {
+
+                if (dailyCapacity <= 0) break;
+
+                double weight = weights.get(cw.getId());
+
+                double share = weight / totalWeight;
+
+                double allocated = share * maxHoursPerDay;
+
+                // IMPORTANT FIXES
+                allocated = Math.min(allocated, remainingWork.get(cw.getId()));
+                allocated = Math.min(allocated, dailyCapacity);
+
+                // prevent zero-hour allocations
+                allocated = Math.max(allocated, 1);
+
+                int finalAllocated = (int) Math.round(allocated);
+
+                if (finalAllocated <= 0) continue;
 
                 StudySession session = new StudySession();
                 session.setDate(date);
+                session.setCourseworkId(cw.getId());
                 session.setTask(cw.getTitle());
-                session.setHoursAllocated(allocated);
+                session.setHoursAllocated(finalAllocated);
 
                 schedule.add(session);
-                dailyLoad.put(date, usedHours + allocated);
 
+                remainingWork.put(
+                        cw.getId(),
+                        remainingWork.get(cw.getId()) - finalAllocated
+                );
+
+                dailyCapacity -= finalAllocated;
             }
-
         }
 
         return schedule;

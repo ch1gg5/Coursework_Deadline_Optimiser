@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 @Service
 public class PriorityCalculator {
@@ -18,6 +17,10 @@ public class PriorityCalculator {
             return Double.MAX_VALUE;
         }
 
-        return (double) cw.getEstimatedHours() / daysLeft;
+        double urgencyFactor = 1.0 / daysLeft;
+
+        double finalCalc = cw.getWeighting() * cw.getDifficulty() * cw.getEstimatedHours() * urgencyFactor;
+
+        return finalCalc;
     }
 }
