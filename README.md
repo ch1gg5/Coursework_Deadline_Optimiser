@@ -1,6 +1,7 @@
 # Coursework Deadline Optimiser
 
 A comprehensive academic workload management system comprising a Spring Boot REST backend and a vanilla HTML/CSS/JavaScript frontend. This application helps students manage coursework deadlines, schedule study sessions, and optimize their workload allocation.
+This branch is an extension of the original project. I made the frontend using Ai as i dont have much experience in frontend development, it is just to demonstrate the backend of the project in a clean way. The backend is built all by me using Spring Boot and Java, while the frontend is a simple HTML/CSS/JavaScript interface that communicates with the backend via RESTful APIs.
 
 ## Overview
 
