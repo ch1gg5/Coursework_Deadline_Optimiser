@@ -26,6 +26,7 @@ public class StudentService {
         Student student = new Student();
         student.setName(request.getName());
         student.setEmail(request.getEmail());
+        student.setMaxHoursPerDay(request.getMaxHoursPerDay());
         repo.save(student);
     }
 
@@ -35,6 +36,7 @@ public class StudentService {
 
         existing.setName(request.getName());
         existing.setEmail(request.getEmail());
+        existing.setMaxHoursPerDay(request.getMaxHoursPerDay());
 
         repo.save(existing);
     }

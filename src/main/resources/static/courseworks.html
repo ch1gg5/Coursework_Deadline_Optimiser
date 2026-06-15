@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Courseworks — Coursework Deadline Optimiser</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="courseworks">
+  <header>
+    <h1>Coursework Deadline Optimiser</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="students.html">Students</a>
+      <a href="modules.html">Modules</a>
+      <a href="courseworks.html">Courseworks</a>
+      <a href="schedule.html">Schedule</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Courseworks</h2>
+
+      <form id="coursework-form" class="form-grid">
+        <label>
+          Title
+          <input id="cw-title" type="text" required>
+        </label>
+        <label>
+          Deadline (ISO)
+          <input id="cw-deadline" type="datetime-local" required>
+        </label>
+        <label>
+          Weighting (%)
+          <input id="cw-weighting" type="number" min="0" step="0.1" required>
+        </label>
+        <label>
+          Estimated Hours
+          <input id="cw-hours" type="number" min="0" step="0.5" required>
+        </label>
+        <label>
+          Student ID
+          <input id="cw-student" type="number" min="0" required>
+        </label>
+        <label>
+          Module ID
+          <input id="cw-module" type="number" min="0" required>
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="btn">Add Coursework</button>
+        </div>
+      </form>
+
+      <table id="courseworks-table">
+        <thead>
+          <tr><th>ID</th><th>Title</th><th>Deadline</th><th>Weighting</th><th>Est Hours</th><th>Student ID</th><th>Module ID</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div id="loading" class="loading hidden">Loading…</div>
+  <script src="script.js"></script>
+</body>
+</html>

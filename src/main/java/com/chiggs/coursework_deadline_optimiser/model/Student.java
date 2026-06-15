@@ -21,6 +21,8 @@ public class Student {
     private String name;
     private String email;
 
+    private Integer maxHoursPerDay;
+
     @JsonIgnore //to avoid infinite json recursion
     @OneToMany(mappedBy = "student")
     private List<Coursework> courseworks;

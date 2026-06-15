@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Modules — Coursework Deadline Optimiser</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="modules">
+  <header>
+    <h1>Coursework Deadline Optimiser</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="students.html">Students</a>
+      <a href="modules.html">Modules</a>
+      <a href="courseworks.html">Courseworks</a>
+      <a href="schedule.html">Schedule</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Modules</h2>
+
+      <form id="module-form" class="form-inline">
+        <input type="hidden" id="module-id">
+        <label>
+          Name
+          <input id="module-name" type="text" placeholder="Module name" required>
+        </label>
+        <label>
+          Code
+          <input id="module-code" type="text" placeholder="ABC123" required>
+        </label>
+        <label>
+          Credits
+          <input id="module-credits" type="number" min="0" step="1" placeholder="10" required>
+        </label>
+        <button type="submit" class="btn">Save Module</button>
+      </form>
+
+      <table id="modules-table">
+        <thead>
+          <tr><th>ID</th><th>Name</th><th>Code</th><th>Credits</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div id="loading" class="loading hidden">Loading…</div>
+  <script src="script.js"></script>
+</body>
+</html>

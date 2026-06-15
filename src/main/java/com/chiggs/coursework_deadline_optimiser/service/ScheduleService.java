@@ -30,7 +30,7 @@ public class ScheduleService {
         List<Coursework> courseworks = courseworkRepo.findAll();
 
         LocalDate today = LocalDate.now();
-        int maxHoursPerDay = 4;
+        int defaultMaxHoursPerDay = 4;
         int planningDays = 60;
 
         List<StudySession> schedule = new ArrayList<>();
@@ -41,82 +41,104 @@ public class ScheduleService {
             remainingWork.put(cw.getId(), (double) cw.getEstimatedHours());
         }
 
+        // Prepare mapping from coursework -> student and student capacity config
+        Map<Long, Long> courseworkToStudent = new HashMap<>();
+        Map<Long, Integer> studentCapacityConfig = new HashMap<>();
+
+        for (Coursework cw : courseworks) {
+            if (cw.getStudent() != null) {
+                courseworkToStudent.put(cw.getId(), cw.getStudent().getId());
+                Integer cap = cw.getStudent().getMaxHoursPerDay();
+                studentCapacityConfig.put(cw.getStudent().getId(), cap == null ? defaultMaxHoursPerDay : cap);
+            } else {
+                courseworkToStudent.put(cw.getId(), null);
+            }
+        }
+
         for (int d = 0; d < planningDays; d++) {
 
             LocalDate date = today.plusDays(d);
-            int dailyCapacity = maxHoursPerDay;
 
-            // STEP 1: get active coursework
-            List<Coursework> active = new ArrayList<>();
+            // Group active coursework per student
+            Map<Long, List<Coursework>> activeByStudent = new HashMap<>();
 
             for (Coursework cw : courseworks) {
 
                 double remaining = remainingWork.get(cw.getId());
-
                 if (remaining <= 0) continue;
-
                 if (date.isAfter(cw.getDeadline())) continue;
 
-                active.add(cw);
+                Long studentId = courseworkToStudent.get(cw.getId());
+                activeByStudent.computeIfAbsent(studentId, k -> new ArrayList<>()).add(cw);
             }
 
-            if (active.isEmpty()) continue;
+            // For each student, allocate up to their capacity independently
+            for (Map.Entry<Long, List<Coursework>> entry : activeByStudent.entrySet()) {
 
-            // STEP 2: calculate weights
-            Map<Long, Double> weights = new HashMap<>();
-            double totalWeight = 0;
+                Long studentId = entry.getKey();
+                List<Coursework> activeList = entry.getValue();
+                if (activeList.isEmpty()) continue;
 
-            for (Coursework cw : active) {
+                int dailyCapacity = (studentId == null) ? defaultMaxHoursPerDay
+                        : studentCapacityConfig.getOrDefault(studentId, defaultMaxHoursPerDay);
 
-                double remaining = remainingWork.get(cw.getId());
-                double priority = pc.calculatePriority(cw);
+                // STEP 1: calculate weights for this student's active coursework
+                Map<Long, Double> weights = new HashMap<>();
+                double totalWeight = 0;
 
-                double weight = priority * remaining;
+                for (Coursework cw : activeList) {
 
-                weights.put(cw.getId(), weight);
-                totalWeight += weight;
-            }
+                    double remaining = remainingWork.get(cw.getId());
+                    double priority = pc.calculatePriority(cw);
 
-            // STEP 3: allocate hours
-            for (Coursework cw : active) {
+                    double weight = priority * remaining;
 
-                if (dailyCapacity <= 0) break;
+                    weights.put(cw.getId(), weight);
+                    totalWeight += weight;
+                }
 
-                double weight = weights.get(cw.getId());
+                if (totalWeight <= 0) continue;
 
-                double share = weight / totalWeight;
+                // STEP 2: allocate hours among this student's active coursework
+                for (Coursework cw : activeList) {
 
-                double allocated = share * maxHoursPerDay;
+                    if (dailyCapacity <= 0) break;
 
-                // IMPORTANT FIXES
-                allocated = Math.min(allocated, remainingWork.get(cw.getId()));
-                allocated = Math.min(allocated, dailyCapacity);
+                    double weight = weights.get(cw.getId());
+                    double share = weight / totalWeight;
 
-                // prevent zero-hour allocations
-                allocated = Math.max(allocated, 1);
+                    double allocated = share * dailyCapacity;
 
-                int finalAllocated = (int) Math.round(allocated);
+                    // IMPORTANT FIXES
+                    allocated = Math.min(allocated, remainingWork.get(cw.getId()));
+                    allocated = Math.min(allocated, dailyCapacity);
 
-                if (finalAllocated <= 0) continue;
+                    // prevent zero-hour allocations
+                    allocated = Math.max(allocated, 1);
 
-                StudySession session = new StudySession();
-                Coursework allocatedCw = courseworkRepo.findById(cw.getId()).orElse(null);
+                    int finalAllocated = (int) Math.round(allocated);
 
-                session.setDate(date);
-                session.setCoursework(allocatedCw);
-                session.setTask(cw.getTitle());
-                session.setHoursAllocated(finalAllocated);
+                    if (finalAllocated <= 0) continue;
 
-                studySessionRepo.save(session);
+                    StudySession session = new StudySession();
+                    Coursework allocatedCw = courseworkRepo.findById(cw.getId()).orElse(null);
 
-                schedule.add(session);
+                    session.setDate(date);
+                    session.setCoursework(allocatedCw);
+                    session.setTask(cw.getTitle());
+                    session.setHoursAllocated(finalAllocated);
 
-                remainingWork.put(
-                        cw.getId(),
-                        remainingWork.get(cw.getId()) - finalAllocated
-                );
+                    studySessionRepo.save(session);
 
-                dailyCapacity -= finalAllocated;
+                    schedule.add(session);
+
+                    remainingWork.put(
+                            cw.getId(),
+                            remainingWork.get(cw.getId()) - finalAllocated
+                    );
+
+                    dailyCapacity -= finalAllocated;
+                }
             }
         }
 

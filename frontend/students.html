@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Students — Coursework Deadline Optimiser</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="students">
+  <header>
+    <h1>Coursework Deadline Optimiser</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="students.html">Students</a>
+      <a href="modules.html">Modules</a>
+      <a href="courseworks.html">Courseworks</a>
+      <a href="schedule.html">Schedule</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Students</h2>
+
+      <form id="student-form" class="form-inline">
+        <input type="hidden" id="student-id">
+        <label>
+          Name
+          <input id="student-name" type="text" placeholder="Full name" required>
+        </label>
+        <label>
+          Email
+          <input id="student-email" type="email" placeholder="email@example.com" required>
+        </label>
+        <label>
+          Max hours/day
+          <input id="student-max-hours" type="number" min="0" step="1" placeholder="4">
+        </label>
+        <button type="submit" class="btn">Add Student</button>
+      </form>
+
+      <table id="students-table">
+        <thead>
+          <tr><th>ID</th><th>Name</th><th>Email</th><th>Max/day</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div id="loading" class="loading hidden">Loading…</div>
+  <script src="script.js"></script>
+</body>
+</html>
