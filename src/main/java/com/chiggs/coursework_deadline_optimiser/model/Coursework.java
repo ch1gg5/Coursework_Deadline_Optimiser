@@ -23,7 +23,7 @@ public class Coursework {
     private int estimatedHours;
     private int weighting;
     private int difficulty;
-    private int progress;
+    private Integer progress; //so it can be null when table is created
 
     @ManyToOne
     @JoinColumn(name = "student_id")

@@ -3,6 +3,7 @@ package com.chiggs.coursework_deadline_optimiser.service;
 import com.chiggs.coursework_deadline_optimiser.model.Coursework;
 import com.chiggs.coursework_deadline_optimiser.model.StudySession;
 import com.chiggs.coursework_deadline_optimiser.repo.CourseworkRepo;
+import com.chiggs.coursework_deadline_optimiser.repo.StudySessionRepo;
 import com.chiggs.coursework_deadline_optimiser.service.optimisation.PriorityCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,12 +15,17 @@ import java.util.*;
 public class ScheduleService {
 
     @Autowired
+    private StudySessionRepo studySessionRepo;
+
+    @Autowired
     private CourseworkRepo courseworkRepo;
 
     @Autowired
     private PriorityCalculator pc;
 
     public List<StudySession> generateSchedule() {
+
+        studySessionRepo.deleteAll();
 
         List<Coursework> courseworks = courseworkRepo.findAll();
 
@@ -94,10 +100,14 @@ public class ScheduleService {
                 if (finalAllocated <= 0) continue;
 
                 StudySession session = new StudySession();
+                Coursework allocatedCw = courseworkRepo.findById(cw.getId()).orElse(null);
+
                 session.setDate(date);
-                session.setCourseworkId(cw.getId());
+                session.setCoursework(allocatedCw);
                 session.setTask(cw.getTitle());
                 session.setHoursAllocated(finalAllocated);
+
+                studySessionRepo.save(session);
 
                 schedule.add(session);
 
@@ -111,6 +121,10 @@ public class ScheduleService {
         }
 
         return schedule;
+    }
+
+    public List<StudySession> getSchedule() {
+        return studySessionRepo.findAll();
     }
 
 }
