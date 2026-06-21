@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Coursework Deadline Optimiser — Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="index">
+<header>
+  <h1>Coursework Deadline Optimiser</h1>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="students.html">Students</a>
+    <a href="modules.html">Modules</a>
+    <a href="courseworks.html">Courseworks</a>
+    <a href="schedule.html">Schedule</a>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Welcome</h2>
+    <p>This simple frontend interacts with the backend at <code>http://localhost:8080</code>.</p>
+    <p>Use the navigation to manage Students, Modules, Courseworks or to generate and view the Schedule.</p>
+  </section>
+
+  <section class="card quick-links">
+    <h3>Quick actions</h3>
+    <div class="grid">
+      <a class="btn" href="students.html">Manage Students</a>
+      <a class="btn" href="modules.html">Manage Modules</a>
+      <a class="btn" href="courseworks.html">Manage Courseworks</a>
+      <a class="btn" href="schedule.html">View / Generate Schedule</a>
+    </div>
+  </section>
+</main>
+
+<div id="loading" class="loading hidden">Loading…</div>
+<script src="script.js"></script>
+</body>
+</html>

@@ -22,11 +22,20 @@ public class StudentService {
         return repo.findById(id).orElse(null);
     }
 
-    public void addStudent(StudentRequest request){
+    public StudentRequest addStudent(StudentRequest request){
         Student student = new Student();
         student.setName(request.getName());
         student.setEmail(request.getEmail());
-        repo.save(student);
+        student.setMaxHoursPerDay(request.getMaxHoursPerDay());
+
+        Student newStudent = repo.save(student);
+
+        StudentRequest studentResponse = new StudentRequest();
+        studentResponse.setName(newStudent.getName());
+        studentResponse.setEmail(newStudent.getEmail());
+        studentResponse.setMaxHoursPerDay(newStudent.getMaxHoursPerDay());
+
+        return studentResponse;
     }
 
     public void updateStudent(Long id, StudentRequest request){
@@ -35,6 +44,7 @@ public class StudentService {
 
         existing.setName(request.getName());
         existing.setEmail(request.getEmail());
+        existing.setMaxHoursPerDay(request.getMaxHoursPerDay());
 
         repo.save(existing);
     }

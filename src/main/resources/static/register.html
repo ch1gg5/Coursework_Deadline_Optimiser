@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="card" style="max-width: 400px; margin: 100px auto; padding: 2rem;">
+  <h2>Register</h2>
+  <div id="error-msg" style="color: red; display: none;"></div>
+  <div id="success-msg" style="color: green; display: none;"></div>
+
+  <div>
+    <label>Username</label>
+    <input type="text" id="username" placeholder="Username" style="width:100%; margin-bottom: 1rem;">
+  </div>
+  <div>
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Password" style="width:100%; margin-bottom: 1rem;">
+  </div>
+
+  <button class="btn" onclick="register()">Register</button>
+  <p>Already have an account? <a href="/login.html">Login</a></p>
+</div>
+
+<script>
+  async function register() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+
+    try {
+      const res = await fetch('http://localhost:8080/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (!res.ok) {
+        errorMsg.textContent = 'Registration failed, username may already be taken';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      successMsg.textContent = 'Registered successfully! Redirecting to login...';
+      successMsg.style.display = 'block';
+      setTimeout(() => window.location.href = '/login.html', 1500);
+
+    } catch (err) {
+      errorMsg.textContent = 'Something went wrong, try again';
+      errorMsg.style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>
