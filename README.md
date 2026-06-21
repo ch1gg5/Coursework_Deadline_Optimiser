@@ -258,3 +258,29 @@ jwt.expiration=86400000
 2. Fair Distribution:
    - Respects per-student daily capacity limits
    - Prevents one student's workload from affecting another's schedule
+
+## Planned Features
+
+**Per-user data isolation**
+Each user will only be able to view and manage their own students, modules, coursework, and schedule. Currently all authenticated users share the same data pool.
+
+**Admin panel**
+A dedicated admin interface for users with `ROLE_ADMIN`, including the ability to view all users, delete accounts, and promote users to admin.
+
+**Global exception handling**
+A `@ControllerAdvice` class to intercept all exceptions and return clean, consistent JSON error responses across the entire API instead of Spring's default error pages.
+
+**Input validation**
+Bean Validation annotations (`@NotBlank`, `@Size`, `@Min`) on all DTO classes with proper `400 Bad Request` responses when invalid data is submitted.
+
+**API documentation**
+Springdoc/Swagger UI integration, providing an interactive API explorer at `/swagger-ui.html` so the full API can be browsed and tested without any external tools.
+
+**Docker**
+A `Dockerfile` and `docker-compose.yml` to containerise the application and PostgreSQL database, allowing the entire stack to be spun up with a single `docker compose up` command.
+
+**Email notifications**
+Automated deadline reminder emails using Spring Mail, notifying users when a coursework deadline is approaching based on their schedule.
+
+**Export to CSV/ICS**
+Allow users to download their generated schedule as a CSV file or an ICS calendar file for import into Google Calendar, Outlook, or Apple Calendar.
