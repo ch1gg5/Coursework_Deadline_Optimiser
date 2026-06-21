@@ -1,18 +1,45 @@
-/* Shared frontend script for all pages. Uses fetch() to call backend at /api
+/* Shared frontend script for all pages. Uses fetch() to call backend at http://localhost:8080
    Behaviour depends on body's data-page attribute. */
 
-const API_BASE = '/api';
+const API_BASE = 'http://localhost:8080/api';
 
 function showLoading() { document.getElementById('loading')?.classList.remove('hidden'); }
 function hideLoading() { document.getElementById('loading')?.classList.add('hidden'); }
 
+// ---------- Auth ----------
+function getToken() {
+  return localStorage.getItem('jwt_token');
+}
+
+function redirectToLogin() {
+  window.location.href = '/login.html';
+}
+
+function logout() {
+  localStorage.removeItem('jwt_token');
+  redirectToLogin();
+}
+
+// Redirect to login if no token (skip on auth pages)
+(function checkAuth() {
+  const page = document.body.dataset.page;
+  if (page === 'login' || page === 'register') return;
+  if (!getToken()) redirectToLogin();
+})();
+
 async function fetchJSON(url, opts = {}){
   showLoading();
   try{
-    const res = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
-      ...opts
-    });
+    const token = getToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(url, { headers, ...opts });
+
+    if (res.status === 401 || res.status === 403) {
+      redirectToLogin();
+      return;
+    }
     if(!res.ok){
       const text = await res.text();
       throw new Error(`${res.status} ${res.statusText} - ${text}`);
@@ -105,7 +132,6 @@ async function submitModule(e){
   if(!name || !code || isNaN(credits)) { alert('Please complete module fields'); return; }
   try{
     if(id){
-      // PUT /api/modules/{id}
       await fetchJSON(`${API_BASE}/modules/${id}`, { method:'PUT', body: JSON.stringify({ name, moduleCode: code, credits }) });
     }else{
       await fetchJSON(`${API_BASE}/modules`, { method:'POST', body: JSON.stringify({ name, moduleCode: code, credits }) });
@@ -125,7 +151,6 @@ async function handleModulesTableClick(e){
     if(!confirm('Delete module id ' + id + '?')) return;
     try{ await fetchJSON(`${API_BASE}/modules/${id}`, { method:'DELETE' }); await loadModules(); }catch(e){}
   }else if(action === 'edit'){
-    // load module and fill form
     try{
       const module = await fetchJSON(`${API_BASE}/modules/${id}`);
       document.getElementById('module-id').value = module.id || '';
@@ -151,8 +176,8 @@ async function loadCourseworks(){
                       <td>${escapeHtml(d)}</td>
                       <td>${cw.weighting ?? ''}</td>
                       <td>${cw.estimatedHours ?? ''}</td>
-                                      <td>${(cw.student && cw.student.id) ? cw.student.id : (cw.studentId ?? '')} ${cw.student && cw.student.name ? ' - ' + escapeHtml(cw.student.name) : ''}</td>
-                                      <td>${(cw.module && cw.module.id) ? cw.module.id : (cw.moduleId ?? '')} ${cw.module && cw.module.moduleCode ? ' - ' + escapeHtml(cw.module.moduleCode) : ''}</td>
+                      <td>${(cw.student && cw.student.id) ? cw.student.id : (cw.studentId ?? '')} ${cw.student && cw.student.name ? ' - ' + escapeHtml(cw.student.name) : ''}</td>
+                      <td>${(cw.module && cw.module.id) ? cw.module.id : (cw.moduleId ?? '')} ${cw.module && cw.module.moduleCode ? ' - ' + escapeHtml(cw.module.moduleCode) : ''}</td>
                       <td class="actions">
                         <button class="btn outline" data-action="delete" data-id="${cw.id}">Delete</button>
                       </td>`;
@@ -172,7 +197,6 @@ async function submitCoursework(e){
   if(!title || !deadlineInput || isNaN(weighting) || isNaN(hours) || isNaN(studentId) || isNaN(moduleId)){
     alert('Please complete all coursework fields'); return;
   }
-  // Convert datetime-local to ISO string
   const deadline = new Date(deadlineInput).toISOString();
   try{
     await fetchJSON(`${API_BASE}/courseworks`, { method:'POST', body: JSON.stringify({ title, deadline, weighting, estimatedHours: hours, studentId, moduleId }) });
@@ -193,7 +217,6 @@ async function handleCourseworksTableClick(e){
 async function generateSchedule(){
   if(!confirm('Generate a new schedule? This will call the backend optimisation.')) return;
   try{
-    // Backend currently exposes GET /api/schedule/generate (controller uses @GetMapping)
     await fetchJSON(`${API_BASE}/schedule/generate`);
     await loadSchedule();
   }catch(e){}
@@ -225,13 +248,11 @@ async function loadSchedule(){
       container.innerHTML = '<p>No schedule data or unexpected format.</p>';
       return;
     }
-    // For StudySession objects we expect `date` (ISO date) and a `coursework` object
     const groups = groupByDate(schedule, it => it.date || it.start || it.deadline || JSON.stringify(it));
     Object.keys(groups).sort().forEach(dayKey => {
       const items = groups[dayKey];
       const box = document.createElement('div');
       box.className = 'card schedule-day';
-      // format day header (e.g. Monday, 15 Jun 2026)
       const dayLabel = (() => {
         try{ const d = new Date(dayKey.includes('T') ? dayKey : (dayKey + 'T00:00:00')); return d.toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'short', day:'numeric' }); }catch(e){ return dayKey; }
       })();
@@ -239,7 +260,6 @@ async function loadSchedule(){
       header.className = 'schedule-day-header';
       header.innerHTML = `<h3>${escapeHtml(dayLabel)}</h3>`;
 
-      // build table of sessions for the day
       const table = document.createElement('table');
       table.className = 'schedule-table';
       table.innerHTML = `<thead><tr><th>Time/Task</th><th>Coursework</th><th>Module</th><th>Student</th><th>Hours</th></tr></thead>`;
@@ -277,7 +297,7 @@ async function loadSchedule(){
 }
 
 // ---------- Utilities & Init ----------
-function escapeHtml(s){ return String(s).replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 function init(){
   const page = document.body.dataset.page;
@@ -300,6 +320,4 @@ function init(){
   }
 }
 
-// Auto init on DOM ready
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
-
