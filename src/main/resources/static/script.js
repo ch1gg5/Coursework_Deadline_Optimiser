@@ -1,7 +1,7 @@
 /* Shared frontend script for all pages. Uses fetch() to call backend at http://localhost:8080
    Behaviour depends on body's data-page attribute. */
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://coursework-deadline-optimiser.onrender.com/api';
 
 function showLoading() { document.getElementById('loading')?.classList.remove('hidden'); }
 function hideLoading() { document.getElementById('loading')?.classList.add('hidden'); }
