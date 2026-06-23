@@ -1,7 +1,7 @@
 /* Shared frontend script for all pages. Uses fetch() to call backend at http://localhost:8080
    Behaviour depends on body's data-page attribute. */
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = '/api';
 
 function showLoading() { document.getElementById('loading')?.classList.remove('hidden'); }
 function hideLoading() { document.getElementById('loading')?.classList.add('hidden'); }
@@ -66,12 +66,11 @@ async function loadStudents(){
     const students = await fetchJSON(`${API_BASE}/students`);
     students.forEach(s => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${s.id ?? ''}</td>
+      tr.innerHTML = `<td>${s.email ?? ''}</td>
                       <td>${escapeHtml(s.name ?? '')}</td>
-                      <td>${escapeHtml(s.email ?? '')}</td>
                       <td>${s.maxHoursPerDay ?? ''}</td>
                       <td class="actions">
-                        <button class="btn outline" data-action="delete" data-id="${s.id}">Delete</button>
+                        <button class="btn outline" data-action="delete" data-id="${s.email}">Delete</button>
                       </td>`;
       tbody.appendChild(tr);
     });
@@ -176,8 +175,7 @@ async function loadCourseworks(){
                       <td>${escapeHtml(d)}</td>
                       <td>${cw.weighting ?? ''}</td>
                       <td>${cw.estimatedHours ?? ''}</td>
-                      <td>${(cw.student && cw.student.id) ? cw.student.id : (cw.studentId ?? '')} ${cw.student && cw.student.name ? ' - ' + escapeHtml(cw.student.name) : ''}</td>
-                      <td>${(cw.module && cw.module.id) ? cw.module.id : (cw.moduleId ?? '')} ${cw.module && cw.module.moduleCode ? ' - ' + escapeHtml(cw.module.moduleCode) : ''}</td>
+                      <td>${(cw.module && cw.module.moduleCode) ? escapeHtml(cw.module.moduleCode) : (cw.moduleId ?? '')}</td>
                       <td class="actions">
                         <button class="btn outline" data-action="delete" data-id="${cw.id}">Delete</button>
                       </td>`;
@@ -192,14 +190,13 @@ async function submitCoursework(e){
   const deadlineInput = document.getElementById('cw-deadline').value;
   const weighting = Number(document.getElementById('cw-weighting').value);
   const hours = Number(document.getElementById('cw-hours').value);
-  const studentId = Number(document.getElementById('cw-student').value);
   const moduleId = Number(document.getElementById('cw-module').value);
-  if(!title || !deadlineInput || isNaN(weighting) || isNaN(hours) || isNaN(studentId) || isNaN(moduleId)){
+  if(!title || !deadlineInput || isNaN(weighting) || isNaN(hours) || isNaN(moduleId)){
     alert('Please complete all coursework fields'); return;
   }
   const deadline = new Date(deadlineInput).toISOString();
   try{
-    await fetchJSON(`${API_BASE}/courseworks`, { method:'POST', body: JSON.stringify({ title, deadline, weighting, estimatedHours: hours, studentId, moduleId }) });
+    await fetchJSON(`${API_BASE}/courseworks`, { method:'POST', body: JSON.stringify({ title, deadline, weighting, estimatedHours: hours, moduleId }) });
     document.getElementById('coursework-form').reset();
     await loadCourseworks();
   }catch(e){}
@@ -262,7 +259,7 @@ async function loadSchedule(){
 
       const table = document.createElement('table');
       table.className = 'schedule-table';
-      table.innerHTML = `<thead><tr><th>Time/Task</th><th>Coursework</th><th>Module</th><th>Student</th><th>Hours</th></tr></thead>`;
+      table.innerHTML = `<thead><tr><th>Time/Task</th><th>Coursework</th><th>Module</th><th>Hours</th></tr></thead>`;
       const tb = document.createElement('tbody');
       let totalHours = 0;
       items.forEach(it => {
@@ -273,11 +270,9 @@ async function loadSchedule(){
         const coursework = it.coursework || it.courseworkId || null;
         const cwTitle = coursework && coursework.title ? coursework.title : (it.title || '—');
         const moduleName = coursework && coursework.module && coursework.module.name ? coursework.module.name : (coursework && coursework.moduleName ? coursework.moduleName : '—');
-        const studentName = coursework && coursework.student && coursework.student.name ? coursework.student.name : (it.studentName || '—');
         tr.innerHTML = `<td>${escapeHtml(task)}</td>
                         <td>${escapeHtml(cwTitle)}</td>
                         <td>${escapeHtml(moduleName)}</td>
-                        <td>${escapeHtml(studentName)}</td>
                         <td>${hours}</td>`;
         tb.appendChild(tr);
       });
