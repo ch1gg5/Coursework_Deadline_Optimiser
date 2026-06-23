@@ -1,6 +1,7 @@
 package com.chiggs.coursework_deadline_optimiser.service;
 
 import com.chiggs.coursework_deadline_optimiser.model.Coursework;
+import com.chiggs.coursework_deadline_optimiser.model.Student;
 import com.chiggs.coursework_deadline_optimiser.model.StudySession;
 import com.chiggs.coursework_deadline_optimiser.repo.CourseworkRepo;
 import com.chiggs.coursework_deadline_optimiser.repo.StudySessionRepo;
@@ -23,11 +24,15 @@ public class ScheduleService {
     @Autowired
     private PriorityCalculator pc;
 
+    @Autowired
+    private StudentService studentService;
+
     public List<StudySession> generateSchedule() {
 
-        studySessionRepo.deleteAll();
+        Student currentStudent = studentService.getCurrentStudent();
+        List<Coursework> courseworks = courseworkRepo.findByStudent(currentStudent);
 
-        List<Coursework> courseworks = courseworkRepo.findAll();
+        studySessionRepo.deleteByCourseworkIn(courseworks);
 
         LocalDate today = LocalDate.now();
         int defaultMaxHoursPerDay = 4;
@@ -42,14 +47,14 @@ public class ScheduleService {
         }
 
         // Prepare mapping from coursework -> student and student capacity config
-        Map<Long, Long> courseworkToStudent = new HashMap<>();
-        Map<Long, Integer> studentCapacityConfig = new HashMap<>();
+        Map<Long, String> courseworkToStudent = new HashMap<>();
+        Map<String, Integer> studentCapacityConfig = new HashMap<>();
 
         for (Coursework cw : courseworks) {
             if (cw.getStudent() != null) {
-                courseworkToStudent.put(cw.getId(), cw.getStudent().getId());
+                courseworkToStudent.put(cw.getId(), cw.getStudent().getEmail());
                 Integer cap = cw.getStudent().getMaxHoursPerDay();
-                studentCapacityConfig.put(cw.getStudent().getId(), cap == null ? defaultMaxHoursPerDay : cap);
+                studentCapacityConfig.put(cw.getStudent().getEmail(), cap == null ? defaultMaxHoursPerDay : cap);
             } else {
                 courseworkToStudent.put(cw.getId(), null);
             }
@@ -60,7 +65,7 @@ public class ScheduleService {
             LocalDate date = today.plusDays(d);
 
             // Group active coursework per student
-            Map<Long, List<Coursework>> activeByStudent = new HashMap<>();
+            Map<String, List<Coursework>> activeByStudent = new HashMap<>();
 
             for (Coursework cw : courseworks) {
 
@@ -68,19 +73,19 @@ public class ScheduleService {
                 if (remaining <= 0) continue;
                 if (date.isAfter(cw.getDeadline())) continue;
 
-                Long studentId = courseworkToStudent.get(cw.getId());
-                activeByStudent.computeIfAbsent(studentId, k -> new ArrayList<>()).add(cw);
+                String studentEmail = courseworkToStudent.get(cw.getId());
+                activeByStudent.computeIfAbsent(studentEmail, k -> new ArrayList<>()).add(cw);
             }
 
             // For each student, allocate up to their capacity independently
-            for (Map.Entry<Long, List<Coursework>> entry : activeByStudent.entrySet()) {
+            for (Map.Entry<String, List<Coursework>> entry : activeByStudent.entrySet()) {
 
-                Long studentId = entry.getKey();
+                String studentEmail = entry.getKey();
                 List<Coursework> activeList = entry.getValue();
                 if (activeList.isEmpty()) continue;
 
-                int dailyCapacity = (studentId == null) ? defaultMaxHoursPerDay
-                        : studentCapacityConfig.getOrDefault(studentId, defaultMaxHoursPerDay);
+                int dailyCapacity = (studentEmail == null) ? defaultMaxHoursPerDay
+                        : studentCapacityConfig.getOrDefault(studentEmail, defaultMaxHoursPerDay);
 
                 // STEP 1: calculate weights for this student's active coursework
                 Map<Long, Double> weights = new HashMap<>();
@@ -146,7 +151,9 @@ public class ScheduleService {
     }
 
     public List<StudySession> getSchedule() {
-        return studySessionRepo.findAll();
+        Student currentStudent = studentService.getCurrentStudent();
+        List<Coursework> courseworks = courseworkRepo.findByStudent(currentStudent);
+        return studySessionRepo.findByCourseworkIn(courseworks);
     }
 
 }

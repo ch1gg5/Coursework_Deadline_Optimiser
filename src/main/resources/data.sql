@@ -10,9 +10,9 @@ INSERT INTO academic_module (name, module_code, credits) VALUES
 -- =========================
 -- STUDENTS
 -- =========================
-INSERT INTO student (name) VALUES
-                                   ('Daniel'),
-                                   ('Alex');
+INSERT INTO student (email, name) VALUES
+                                   ('daniel@example.com', 'Daniel'),
+                                   ('alex@example.com', 'Alex');
 
 -- =========================
 -- COURSEWORK
@@ -20,18 +20,18 @@ INSERT INTO student (name) VALUES
 INSERT INTO coursework
 (title, deadline, weighting, difficulty, estimated_hours, student_id, module_id)
 VALUES
-    ('Database Design CW', '2026-06-25', 40, 4, 20, 1, 2),
+    ('Database Design CW', '2026-06-25', 40, 4, 20, 'daniel@example.com', 2),
 
-    ('SQL Optimisation Report', '2026-06-30', 60, 5, 25, 1, 2),
+    ('SQL Optimisation Report', '2026-06-30', 60, 5, 25, 'daniel@example.com', 2),
 
-    ('AI Research Assignment', '2026-07-05', 50, 4, 18, 1, 4),
+    ('AI Research Assignment', '2026-07-05', 50, 4, 18, 'daniel@example.com', 4),
 
-    ('Software Engineering Group Report', '2026-07-10', 30, 3, 15, 1, 3),
+    ('Software Engineering Group Report', '2026-07-10', 30, 3, 15, 'daniel@example.com', 3),
 
-    ('Computer Systems Coursework', '2026-06-22', 35, 3, 12, 2, 1),
+    ('Computer Systems Coursework', '2026-06-22', 35, 3, 12, 'alex@example.com', 1),
 
-    ('Operating Systems Essay', '2026-06-28', 45, 4, 16, 2, 1),
+    ('Operating Systems Essay', '2026-06-28', 45, 4, 16, 'alex@example.com', 1),
 
-    ('Software Engineering Presentation', '2026-07-03', 25, 2, 10, 2, 3),
+    ('Software Engineering Presentation', '2026-07-03', 25, 2, 10, 'alex@example.com', 3),
 
-    ('Machine Learning Mini Project', '2026-07-08', 70, 5, 30, 2, 4);
+    ('Machine Learning Mini Project', '2026-07-08', 70, 5, 30, 'alex@example.com', 4);

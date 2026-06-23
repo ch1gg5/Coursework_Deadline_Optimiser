@@ -27,8 +27,8 @@ public class StudentRepoTest {
         Student savedStudent = studentRepo.save(student);
 
         Assertions.assertNotNull(savedStudent);
-        Assertions.assertNotNull(savedStudent.getId());
-        assert savedStudent.getId() > 0;
+        Assertions.assertNotNull(savedStudent.getEmail());
+        Assertions.assertEquals("John@gmail.com", savedStudent.getEmail());
 
     }
 

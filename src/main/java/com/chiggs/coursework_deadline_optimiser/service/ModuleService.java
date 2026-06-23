@@ -14,12 +14,19 @@ public class ModuleService {
     @Autowired
     private ModuleRepo repo;
 
+    @Autowired
+    private StudentService studentService;
+
     public List<AcademicModule> getAllModules(){
-        return repo.findAll();
+        return repo.findByStudent(studentService.getCurrentStudent());
     }
 
     public AcademicModule getModuleById(Long id){
-        return repo.findById(id).orElse(null);
+        AcademicModule module = repo.findById(id).orElse(null);
+        if (module != null && !module.getStudent().equals(studentService.getCurrentStudent())) {
+            throw new RuntimeException("Access denied");
+        }
+        return module;
     }
     
     public void addModule(ModuleRequest request){
@@ -27,13 +34,16 @@ public class ModuleService {
         module.setName(request.getName());
         module.setModuleCode(request.getModuleCode());
         module.setCredits(request.getCredits());
+        module.setStudent(studentService.getCurrentStudent());
 
         repo.save(module);
     }
     
     public void updateModule(Long id, AcademicModule module){
-        AcademicModule existing = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Module not found: " + id));
+        AcademicModule existing = getModuleById(id);
+        if (existing == null) {
+            throw new RuntimeException("Module not found: " + id);
+        }
 
         existing.setName(module.getName());
         existing.setModuleCode(module.getModuleCode());
@@ -43,7 +53,10 @@ public class ModuleService {
     }
     
     public void deleteModuleById(Long id){
-        repo.deleteById(id);
+        AcademicModule existing = getModuleById(id);
+        if (existing != null) {
+            repo.delete(existing);
+        }
     }
 
 }

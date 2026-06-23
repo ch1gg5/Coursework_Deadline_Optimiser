@@ -21,6 +21,10 @@ public class AcademicModule {
     private String moduleCode;
     private int credits;
 
+    @ManyToOne
+    @JoinColumn(name = "student_email")
+    private Student student;
+
     @JsonIgnore //to avoid infinite json recursion
     @OneToMany(mappedBy = "module")
     private List<Coursework> courseworks;

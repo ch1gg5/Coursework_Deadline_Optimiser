@@ -12,6 +12,6 @@ public class CourseworkRequest {
     private Integer weighting;
     private Integer difficulty;
     private Integer estimatedHours;
-    private Long studentId;
+    private String studentEmail;
     private Long moduleId;
 }

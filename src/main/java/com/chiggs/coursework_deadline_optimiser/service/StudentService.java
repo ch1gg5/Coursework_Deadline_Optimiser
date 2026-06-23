@@ -2,10 +2,14 @@ package com.chiggs.coursework_deadline_optimiser.service;
 
 import com.chiggs.coursework_deadline_optimiser.dto.StudentRequest;
 import com.chiggs.coursework_deadline_optimiser.model.Student;
+import com.chiggs.coursework_deadline_optimiser.model.Users;
 import com.chiggs.coursework_deadline_optimiser.repo.StudentRepo;
+import com.chiggs.coursework_deadline_optimiser.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -14,15 +18,34 @@ public class StudentService {
     @Autowired
     private StudentRepo repo;
 
-    public List<Student> getAllStudents(){
-        return repo.findAll();
+    @Autowired
+    private UserRepo userRepo;
+
+    public Student getCurrentStudent() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users user = userRepo.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return repo.findByEmail(user.getEmail())
+                .orElseThrow(() -> new RuntimeException("Student not found for email: " + user.getEmail()));
     }
 
-    public Student getStudentById(Long id){
-        return repo.findById(id).orElse(null);
+    public List<Student> getAllStudents(){
+        return Collections.singletonList(getCurrentStudent());
+    }
+
+    public Student getStudentById(String id){
+        Student current = getCurrentStudent();
+        if (!current.getEmail().equals(id)) {
+            throw new RuntimeException("Access denied");
+        }
+        return current;
     }
 
     public StudentRequest addStudent(StudentRequest request){
+        // In this new model, students are created during registration. 
+        // But if we need to support this:
         Student student = new Student();
         student.setName(request.getName());
         student.setEmail(request.getEmail());
@@ -38,18 +61,23 @@ public class StudentService {
         return studentResponse;
     }
 
-    public void updateStudent(Long id, StudentRequest request){
-        Student existing = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Student not found: " + id));
+    public void updateStudent(String id, StudentRequest request){
+        Student current = getCurrentStudent();
+        if (!current.getEmail().equals(id)) {
+             throw new RuntimeException("Access denied");
+        }
 
-        existing.setName(request.getName());
-        existing.setEmail(request.getEmail());
-        existing.setMaxHoursPerDay(request.getMaxHoursPerDay());
+        current.setName(request.getName());
+        current.setMaxHoursPerDay(request.getMaxHoursPerDay());
 
-        repo.save(existing);
+        repo.save(current);
     }
 
-    public void deleteStudentById(Long id){
+    public void deleteStudentById(String id){
+        Student current = getCurrentStudent();
+        if (!current.getEmail().equals(id)) {
+            throw new RuntimeException("Access denied");
+        }
         repo.deleteById(id);
     }
 }

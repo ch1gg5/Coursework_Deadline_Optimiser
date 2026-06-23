@@ -21,21 +21,30 @@ public class CourseworkService {
     private StudentRepo studentRepo;
     @Autowired
     private ModuleRepo moduleRepo;
+    @Autowired
+    private StudentService studentService;
 
     public List<Coursework> getAllCoursework(){
-        return courseworkRepo.findAll();
+        return courseworkRepo.findByStudent(studentService.getCurrentStudent());
     }
 
     public Coursework getCourseById(Long id){
-        return courseworkRepo.findById(id).orElse(null);
+        Coursework coursework = courseworkRepo.findById(id).orElse(null);
+        if (coursework != null && !coursework.getStudent().equals(studentService.getCurrentStudent())) {
+            throw new RuntimeException("Access denied");
+        }
+        return coursework;
     }
 
     public void addCoursework(CourseworkRequest request){
-        Student student =
-                studentRepo.findById(request.getStudentId()).orElse(null);
+        Student student = studentService.getCurrentStudent();
 
         AcademicModule module =
                 moduleRepo.findById(request.getModuleId()).orElse(null);
+        
+        if (module != null && !module.getStudent().equals(student)) {
+             throw new RuntimeException("Module does not belong to student");
+        }
 
         Coursework coursework = new Coursework();
 
@@ -54,14 +63,19 @@ public class CourseworkService {
 
     public void updateCoursework(Long id, CourseworkRequest request){
 
-        Coursework existing = courseworkRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Coursework not found: " + id));
+        Coursework existing = getCourseById(id);
+        if (existing == null) {
+             throw new RuntimeException("Coursework not found: " + id);
+        }
 
-        Student student = studentRepo.findById(request.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+        Student student = studentService.getCurrentStudent();
 
         AcademicModule module = moduleRepo.findById(request.getModuleId())
                 .orElseThrow(() -> new RuntimeException("Module not found"));
+
+        if (!module.getStudent().equals(student)) {
+            throw new RuntimeException("Module does not belong to student");
+        }
 
         existing.setTitle(request.getTitle());
         existing.setDeadline(request.getDeadline());
@@ -75,6 +89,9 @@ public class CourseworkService {
     }
 
     public void deleteCourseById(Long id){
-        courseworkRepo.deleteById(id);
+        Coursework existing = getCourseById(id);
+        if (existing != null) {
+            courseworkRepo.delete(existing);
+        }
     }
 }
