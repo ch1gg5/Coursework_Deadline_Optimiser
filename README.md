@@ -4,6 +4,8 @@ A comprehensive academic workload management system comprising a Spring Boot RES
 
 This branch is an extension of the original project. The frontend was built with AI assistance as a clean demonstration of the backend — it is not the focus of the project. The backend is built entirely by me using Spring Boot and Java, following a layered architecture with RESTful APIs, JPA persistence, Spring Security, and JWT authentication.
 
+Live demo: https://coursework-deadline-optimiser.onrender.com/
+
 ## Overview
 
 The Coursework Deadline Optimiser is a full-stack web application designed to:
