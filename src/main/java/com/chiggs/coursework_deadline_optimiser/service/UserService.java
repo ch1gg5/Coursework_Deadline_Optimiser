@@ -6,7 +6,9 @@ import com.chiggs.coursework_deadline_optimiser.model.Users;
 import com.chiggs.coursework_deadline_optimiser.repo.StudentRepo;
 import com.chiggs.coursework_deadline_optimiser.repo.UserRepo;
 import com.chiggs.coursework_deadline_optimiser.security.JwtService;
+import com.chiggs.coursework_deadline_optimiser.security.SecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +68,11 @@ public class UserService {
         }
 
         return jwtService.generateToken(username, user.getRole().name());
+    }
+
+    public Users getCurrentUser(){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepo.findByUsername(username);
     }
 
 }

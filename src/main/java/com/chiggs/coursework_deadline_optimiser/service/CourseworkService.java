@@ -23,14 +23,16 @@ public class CourseworkService {
     private ModuleRepo moduleRepo;
     @Autowired
     private StudentService studentService;
+    @Autowired
+    private UserService userService;
 
     public List<Coursework> getAllCoursework(){
-        return courseworkRepo.findByStudent(studentService.getCurrentStudent());
+        return courseworkRepo.findByUser(userService.getCurrentUser());
     }
 
     public Coursework getCourseById(Long id){
         Coursework coursework = courseworkRepo.findById(id).orElse(null);
-        if (coursework != null && !coursework.getStudent().equals(studentService.getCurrentStudent())) {
+        if (coursework != null && !coursework.getUser().getStudent().equals(studentService.getCurrentStudent())) {
             throw new RuntimeException("Access denied");
         }
         return coursework;
@@ -42,7 +44,7 @@ public class CourseworkService {
         AcademicModule module =
                 moduleRepo.findById(request.getModuleId()).orElse(null);
         
-        if (module != null && !module.getStudent().equals(student)) {
+        if (module != null && !module.getUser().getStudent().equals(student)) {
              throw new RuntimeException("Module does not belong to student");
         }
 
@@ -55,7 +57,7 @@ public class CourseworkService {
         coursework.setEstimatedHours(
                 request.getEstimatedHours());
 
-        coursework.setStudent(student);
+        coursework.setUser(student.getUser());
         coursework.setModule(module);
 
         courseworkRepo.save(coursework);
@@ -73,7 +75,7 @@ public class CourseworkService {
         AcademicModule module = moduleRepo.findById(request.getModuleId())
                 .orElseThrow(() -> new RuntimeException("Module not found"));
 
-        if (!module.getStudent().equals(student)) {
+        if (!module.getUser().getStudent().equals(student)) {
             throw new RuntimeException("Module does not belong to student");
         }
 
@@ -81,7 +83,7 @@ public class CourseworkService {
         existing.setDeadline(request.getDeadline());
         existing.setWeighting(request.getWeighting());
         existing.setEstimatedHours(request.getEstimatedHours());
-        existing.setStudent(student);
+        existing.setUser(student.getUser());
         existing.setModule(module);
 
         courseworkRepo.save(existing);

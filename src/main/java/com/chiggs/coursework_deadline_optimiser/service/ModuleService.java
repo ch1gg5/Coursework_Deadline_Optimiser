@@ -17,13 +17,17 @@ public class ModuleService {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private UserService userService;
+
+
     public List<AcademicModule> getAllModules(){
-        return repo.findByStudent(studentService.getCurrentStudent());
+        return repo.findByUser(userService.getCurrentUser());
     }
 
     public AcademicModule getModuleById(Long id){
         AcademicModule module = repo.findById(id).orElse(null);
-        if (module != null && !module.getStudent().equals(studentService.getCurrentStudent())) {
+        if (module != null && !module.getUser().getStudent().equals(studentService.getCurrentStudent())) {
             throw new RuntimeException("Access denied");
         }
         return module;
@@ -34,7 +38,7 @@ public class ModuleService {
         module.setName(request.getName());
         module.setModuleCode(request.getModuleCode());
         module.setCredits(request.getCredits());
-        module.setStudent(studentService.getCurrentStudent());
+        module.setUser(studentService.getCurrentStudent().getUser());
 
         repo.save(module);
     }

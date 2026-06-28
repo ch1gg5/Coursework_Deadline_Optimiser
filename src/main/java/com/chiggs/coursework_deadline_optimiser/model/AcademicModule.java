@@ -22,8 +22,8 @@ public class AcademicModule {
     private int credits;
 
     @ManyToOne
-    @JoinColumn(name = "student_email")
-    private Student student;
+    @JoinColumn(name = "user_id")
+    private Users user;
 
     @JsonIgnore //to avoid infinite json recursion
     @OneToMany(mappedBy = "module")

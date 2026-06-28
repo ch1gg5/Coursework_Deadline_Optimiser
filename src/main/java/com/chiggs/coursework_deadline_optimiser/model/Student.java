@@ -23,7 +23,8 @@ public class Student {
 
     private Integer maxHoursPerDay;
 
-    @JsonIgnore //to avoid infinite json recursion
-    @OneToMany(mappedBy = "student")
-    private List<Coursework> courseworks;
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private Users user;
+    
 }

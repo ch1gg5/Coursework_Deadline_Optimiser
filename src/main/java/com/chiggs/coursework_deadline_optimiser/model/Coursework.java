@@ -26,8 +26,8 @@ public class Coursework {
     private Integer progress; //so it can be null when table is created
 
     @ManyToOne
-    @JoinColumn(name = "student_id")
-    private Student student;
+    @JoinColumn(name = "user_id")
+    private Users user;
 
     @ManyToOne
     @JoinColumn(name = "module_id")

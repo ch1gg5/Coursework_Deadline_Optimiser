@@ -1,8 +1,11 @@
 package com.chiggs.coursework_deadline_optimiser.model;
 
 import com.chiggs.coursework_deadline_optimiser.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 @Entity
@@ -18,6 +21,14 @@ public class Users {
     private String username;
     private String email;
     private String password;
+
+    @JsonIgnore //to avoid infinite json recursion
+    @OneToOne(mappedBy = "user")
+    private Student student;
+
+    @JsonIgnore //to avoid infinite json recursion
+    @OneToMany(mappedBy = "user")
+    private List<Coursework> courseworks;
 
     public int getId() {
         return id;

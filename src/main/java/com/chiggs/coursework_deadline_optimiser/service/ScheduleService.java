@@ -3,6 +3,7 @@ package com.chiggs.coursework_deadline_optimiser.service;
 import com.chiggs.coursework_deadline_optimiser.model.Coursework;
 import com.chiggs.coursework_deadline_optimiser.model.Student;
 import com.chiggs.coursework_deadline_optimiser.model.StudySession;
+import com.chiggs.coursework_deadline_optimiser.model.Users;
 import com.chiggs.coursework_deadline_optimiser.repo.CourseworkRepo;
 import com.chiggs.coursework_deadline_optimiser.repo.StudySessionRepo;
 import com.chiggs.coursework_deadline_optimiser.service.optimisation.PriorityCalculator;
@@ -27,10 +28,14 @@ public class ScheduleService {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private UserService userService;
+
     public List<StudySession> generateSchedule() {
 
         Student currentStudent = studentService.getCurrentStudent();
-        List<Coursework> courseworks = courseworkRepo.findByStudent(currentStudent);
+        Users currentUser = userService.getCurrentUser();
+        List<Coursework> courseworks = courseworkRepo.findByUser(currentUser);
 
         studySessionRepo.deleteByCourseworkIn(courseworks);
 
@@ -51,10 +56,10 @@ public class ScheduleService {
         Map<String, Integer> studentCapacityConfig = new HashMap<>();
 
         for (Coursework cw : courseworks) {
-            if (cw.getStudent() != null) {
-                courseworkToStudent.put(cw.getId(), cw.getStudent().getEmail());
-                Integer cap = cw.getStudent().getMaxHoursPerDay();
-                studentCapacityConfig.put(cw.getStudent().getEmail(), cap == null ? defaultMaxHoursPerDay : cap);
+            if (cw.getUser() != null) {
+                courseworkToStudent.put(cw.getId(), cw.getUser().getEmail());
+                Integer cap = cw.getUser().getStudent().getMaxHoursPerDay();
+                studentCapacityConfig.put(cw.getUser().getStudent().getEmail(), cap == null ? defaultMaxHoursPerDay : cap);
             } else {
                 courseworkToStudent.put(cw.getId(), null);
             }
@@ -152,7 +157,8 @@ public class ScheduleService {
 
     public List<StudySession> getSchedule() {
         Student currentStudent = studentService.getCurrentStudent();
-        List<Coursework> courseworks = courseworkRepo.findByStudent(currentStudent);
+        Users currentUser = userService.getCurrentUser();
+        List<Coursework> courseworks = courseworkRepo.findByUser(currentUser);
         return studySessionRepo.findByCourseworkIn(courseworks);
     }
 
